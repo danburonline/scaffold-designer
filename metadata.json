@@ -1,0 +1,5 @@
+{
+  "name": "Anisotropic Scaffold Designer",
+  "description": "A tool for students in neural tissue engineering to design and modify anisotropic microstructure templates. It allows for parameter tuning, diffeomorphic transformations, and exporting designs for 3D printing or documentation.",
+  "requestFramePermissions": []
+}
