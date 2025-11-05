@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { ScaffoldParams } from '../types';
 import { drawScaffold } from '../utils/drawing';
@@ -16,7 +17,7 @@ export const CanvasRenderer = forwardRef<HTMLCanvasElement, CanvasRendererProps>
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     // Set a fixed internal resolution for drawing
@@ -27,5 +28,5 @@ export const CanvasRenderer = forwardRef<HTMLCanvasElement, CanvasRendererProps>
 
   }, [params, canvasRef]);
 
-  return <canvas ref={canvasRef} className="w-full h-full object-contain rounded-md bg-gray-200" />;
+  return <canvas ref={canvasRef} className="w-full h-full object-contain rounded-md bg-black" />;
 });

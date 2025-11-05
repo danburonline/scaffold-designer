@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ScaffoldParams, TransformId, TemplateId } from '../types';
+import { ScaffoldParams, TransformId, TemplateId, HeightModulationType } from '../types';
 import { DEFAULT_PARAMS } from '../constants';
 
 interface ParameterControlsProps {
@@ -15,7 +15,7 @@ const Slider: React.FC<{ label: string; value: number; min: number; max: number;
         </label>
         <div className="flex items-center space-x-2">
             <input type="range" min={min} max={max} step={step} value={value} onChange={onChange} className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer" />
-            <span className="text-sm text-gray-300 font-mono w-24 text-right">{value.toFixed(label.includes('Frequency') || label.includes('Porosity') || label.includes('Factor') || label.includes('Density') || label.includes('Strength') ? 3 : 0)} {unit}</span>
+            <span className="text-sm text-gray-300 font-mono w-24 text-right">{value.toFixed(label.includes('Frequency') || label.includes('Porosity') || label.includes('Factor') || label.includes('Density') || label.includes('Strength') || label.includes('Amplitude') ? 3 : 0)} {unit}</span>
         </div>
     </div>
 );
@@ -25,8 +25,8 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
     setParams(p => ({ ...p, [field]: parseFloat(e.target.value) }));
   };
   
-  const handleTransformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setParams(p => ({ ...p, transformId: e.target.value as TransformId }));
+  const handleSelectChange = (field: keyof ScaffoldParams) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setParams(p => ({ ...p, [field]: e.target.value as any }));
   };
 
   const handleRandomize = () => {
@@ -99,6 +99,13 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
     }
 
     randomizeField('transformStrength', 0.1, 0.8, true);
+    
+    const modulationTypes: HeightModulationType[] = ['none', 'gradient', 'perlin', 'wave'];
+    randomizedParams.heightModulationType = modulationTypes[Math.floor(Math.random() * modulationTypes.length)];
+    randomizeField('heightModulationAmplitude', 0.2, 1.0, true);
+    randomizeField('heightModulationFrequency', 2, 20, true);
+    randomizeField('heightModulationGradientAngle', 0, 360);
+
     setParams(randomizedParams);
   };
 
@@ -213,7 +220,7 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
           <h3 className="font-semibold border-b border-gray-600 pb-2 mb-2">Diffeomorphic Transformation</h3>
           <div>
               <label className="block text-sm font-medium text-gray-300">Transformation Type</label>
-              <select value={params.transformId} onChange={handleTransformChange} className="w-full mt-1 bg-gray-700 text-white p-2 rounded-md">
+              <select value={params.transformId} onChange={handleSelectChange('transformId')} className="w-full mt-1 bg-gray-700 text-white p-2 rounded-md">
                   <option value="none">None</option>
                   <option value="twist">Twist</option>
                   <option value="pinch">Pinch</option>
@@ -222,6 +229,30 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
           </div>
           {params.transformId !== 'none' && (
               <Slider label="Strength" value={params.transformStrength} min={0} max={1} step={0.05} unit="" onChange={handleParamChange('transformStrength')} help="Magnitude of the transformation effect."/>
+          )}
+      </div>
+
+      <div className="space-y-3 p-3 bg-gray-900/50 rounded-md">
+          <h3 className="font-semibold border-b border-gray-600 pb-2 mb-2">Height Modulation</h3>
+          <div>
+              <label className="block text-sm font-medium text-gray-300">Modulation Type</label>
+              <select value={params.heightModulationType} onChange={handleSelectChange('heightModulationType')} className="w-full mt-1 bg-gray-700 text-white p-2 rounded-md">
+                  <option value="none">None (Uniform)</option>
+                  <option value="gradient">Gradient</option>
+                  <option value="perlin">Perlin Noise</option>
+                  <option value="wave">Wave</option>
+              </select>
+          </div>
+          {params.heightModulationType !== 'none' && (
+            <>
+              <Slider label="Amplitude" value={params.heightModulationAmplitude} min={0} max={1} step={0.05} unit="" onChange={handleParamChange('heightModulationAmplitude')} help="Strength of the height variation."/>
+              {params.heightModulationType === 'gradient' &&
+                <Slider label="Angle" value={params.heightModulationGradientAngle} min={0} max={360} step={1} unit="deg" onChange={handleParamChange('heightModulationGradientAngle')} help="Direction of the height gradient."/>
+              }
+              {(params.heightModulationType === 'perlin' || params.heightModulationType === 'wave') &&
+                <Slider label="Frequency" value={params.heightModulationFrequency} min={1} max={50} step={0.5} unit="" onChange={handleParamChange('heightModulationFrequency')} help="Scale/tightness of the height pattern."/>
+              }
+            </>
           )}
       </div>
 

@@ -1,21 +1,24 @@
 // FIX: Import `TransformId` to fix 'Cannot find name' error.
-import { Template, ScaffoldParams, TemplateId, TransformId } from './types';
+import { Template, ScaffoldParams, TemplateId, TransformId, HeightModulationType } from './types';
 
 export const TEMPLATES: Template[] = [
+  // Prioritized templates based on user feedback
+  { id: 'dendritic', name: 'Dendritic', description: 'Anisotropic: Tree-like branching structures for hierarchical guidance.' },
+  { id: 'maze', name: 'Maze', description: 'Anisotropic: A labyrinth for complex neurite pathfinding studies.'},
   { id: 'aligned-fibers', name: 'Aligned Fibers', description: 'Anisotropic: Parallel channels mimicking nerve bundles.' },
+  { id: 'cellular', name: 'Cellular', description: 'Isotropic: Irregular, packed cells mimicking natural tissue structure.'},
+  { id: 'grid-gradient', name: 'Grid Gradient', description: 'A gradient of pore sizes across the scaffold.' },
+  { id: 'porous-network', name: 'Porous Network', description: 'Isotropic: Random pores for general cell growth.' },
+  
+  // Remaining templates in their original relative order
   { id: 'lamellar', name: 'Lamellar', description: 'Anisotropic: Parallel, thick layers or bands.'},
   { id: 'sinusoidal-fibers', name: 'Sinusoidal', description: 'Anisotropic: Parallel wavy fibers for gentle guidance.'},
   { id: 'wavy-channels', name: 'Wavy Channels', description: 'Anisotropic: Sinusoidal paths for complex guidance cues.' },
-  { id: 'dendritic', name: 'Dendritic', description: 'Anisotropic: Tree-like branching structures for hierarchical guidance.' },
   { id: 'radial-spokes', name: 'Radial Spokes', description: 'Anisotropic: Guidance from a central point, like ganglia.' },
   { id: 'vortex', name: 'Vortex', description: 'Anisotropic: A swirling pattern for rotational guidance cues.'},
-  { id: 'maze', name: 'Maze', description: 'Anisotropic: A labyrinth for complex neurite pathfinding studies.'},
   { id: 'honeycomb', name: 'Honeycomb', description: 'Isotropic: A hexagonal grid for uniform cell seeding.' },
-  { id: 'porous-network', name: 'Porous Network', description: 'Isotropic: Random pores for general cell growth.' },
   { id: 'equiaxed', name: 'Equiaxed', description: 'Isotropic: Densely packed, roughly uniform circular grains.'},
-  { id: 'cellular', name: 'Cellular', description: 'Isotropic: Irregular, packed cells mimicking natural tissue structure.'},
   { id: 'scherk-tower', name: 'Scherk Tower', description: 'Isotropic: A 2D projection of a minimal surface for complex 3D-like topography.'},
-  { id: 'grid-gradient', name: 'Grid Gradient', description: 'A gradient of pore sizes across the scaffold.' },
   { id: 'concentric-rings', name: 'Concentric Rings', description: 'Circular guides for radial neurite outgrowth.'},
   { id: 'micropillar-array', name: 'Pillar Array', description: 'Topographical cues using micropillars.' },
   { id: 'crosshatch-grid', name: 'Crosshatch Grid', description: 'Orthogonal fiber grid for 2D guidance.'},
@@ -29,6 +32,11 @@ const BASE_PARAMS = {
   thickness: 100,
   width: 500,
   height: 500,
+  // Height Modulation Defaults
+  heightModulationType: 'none' as HeightModulationType,
+  heightModulationAmplitude: 0.5,
+  heightModulationFrequency: 5,
+  heightModulationGradientAngle: 0,
   // Set all template-specific params to a default
   fiberSpacing: 20,
   channelWidth: 20,

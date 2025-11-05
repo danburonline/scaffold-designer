@@ -1,5 +1,51 @@
 import { ScaffoldParams, TransformId } from '../types';
 
+// Simple Perlin Noise implementation
+class Perlin {
+  p: number[];
+  constructor() {
+    this.p = new Array(512);
+    const permutation = [151,160,137,91,90,15,
+    131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
+    190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
+    88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
+    77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
+    102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
+    135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
+    5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
+    223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
+    129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
+    251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
+    49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
+    138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180];
+    for (let i=0; i < 256 ; i++) this.p[256+i] = this.p[i] = permutation[i];
+  }
+  fade(t: number) { return t * t * t * (t * (t * 6 - 15) + 10); }
+  lerp(t: number, a: number, b: number) { return a + t * (b - a); }
+  grad(hash: number, x: number, y: number) {
+    const h = hash & 15;
+    const u = h < 8 ? x : y;
+    const v = h < 4 ? y : h === 12 || h === 14 ? x : 0;
+    return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+  }
+  noise(x: number, y: number) {
+    const X = Math.floor(x) & 255;
+    const Y = Math.floor(y) & 255;
+    x -= Math.floor(x);
+    y -= Math.floor(y);
+    const u = this.fade(x);
+    const v = this.fade(y);
+    const p = this.p;
+    const A = p[X] + Y, B = p[X + 1] + Y;
+    return this.lerp(v,
+        this.lerp(u, this.grad(p[A], x, y), this.grad(p[B], x - 1, y)),
+        this.lerp(u, this.grad(p[A + 1], x, y - 1), this.grad(p[B + 1], x - 1, y - 1))
+    );
+  }
+}
+const perlin = new Perlin();
+
+
 // Helper function to apply diffeomorphic transformations
 function applyTransform(x: number, y: number, params: ScaffoldParams, centerX: number, centerY: number): [number, number] {
   const { transformId, transformStrength } = params;
@@ -211,37 +257,24 @@ function drawTunnels(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
     const scaledChannelWidth = channelWidth * (canvas.width / width);
     const scaledPeriod = totalPeriod * (canvas.width / width);
 
-    // Draw solid material background first
-    ctx.fillStyle = '#1f2937';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Now carve out the tunnels
-    ctx.fillStyle = '#f3f4f6'; // Empty space color
-
+    // Caller sets fill styles. This function now just carves out tunnels.
     for (let x = 0; x < canvas.width; x += scaledPeriod) {
         ctx.beginPath();
-        for (let y = 0; y <= canvas.height; y++) {
+        const path = new Path2D();
+        let start = applyTransform(x,0, params, canvas.width/2, canvas.height/2);
+        path.moveTo(start[0], start[1]);
+        for (let y = 1; y <= canvas.height; y++) {
             const [tx, ty] = applyTransform(x, y, params, canvas.width / 2, canvas.height / 2);
-            const [tx2, ty2] = applyTransform(x + scaledChannelWidth, y, params, canvas.width / 2, canvas.height / 2);
-            if (y === 0) {
-                ctx.moveTo(tx, ty);
-            } else {
-                ctx.lineTo(tx, ty);
-            }
-            // This is a simplified approach; proper transformation would require a mesh.
-            // For now, we draw a transformed quad for each segment.
+            path.lineTo(tx, ty);
         }
-        // This loop draws the left side of the tunnel, now draw the right and fill
         for (let y = canvas.height; y >= 0; y--) {
             const [tx, ty] = applyTransform(x + scaledChannelWidth, y, params, canvas.width / 2, canvas.height / 2);
-            ctx.lineTo(tx, ty);
+            path.lineTo(tx, ty);
         }
-        ctx.closePath();
-        ctx.fill();
+        path.closePath();
+        ctx.fill(path);
     }
 }
-
-// --- NEW DRAWING FUNCTIONS ---
 
 function drawLamellar(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
     const { width, fiberSpacing, lamellaeWidth } = params;
@@ -251,7 +284,6 @@ function drawLamellar(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
 
     for (let x = 0; x < canvas.width; x += scaledSpacing) {
         ctx.beginPath();
-        // Approximate transformed rectangle by a polygon
         const points = [
             applyTransform(x, 0, params, canvas.width/2, canvas.height/2),
             applyTransform(x + scaledWidth, 0, params, canvas.width/2, canvas.height/2),
@@ -352,14 +384,8 @@ function drawCellular(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
     const { cellDensity } = params;
     const canvas = ctx.canvas;
     const numPoints = cellDensity * canvas.width * canvas.height;
-
-    // Fill with material first
-    ctx.fillStyle = '#1f2937';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Carve out cells
-    ctx.fillStyle = '#f3f4f6';
-    
+    // Caller sets fill styles. This function now just carves out cells.
     for(let i = 0; i < numPoints; i++) {
         const centerX = Math.random() * canvas.width;
         const centerY = Math.random() * canvas.height;
@@ -462,7 +488,6 @@ function drawScherkTower(ctx: CanvasRenderingContext2D, params: ScaffoldParams) 
             const normX = (x - canvas.width / 2) / (canvas.width / 2);
             const normY = (y - canvas.height / 2) / (canvas.height / 2);
             
-            // This creates a checkerboard-like pattern based on the Scherk minimal surface equation
             if (Math.cos(scherkFrequency * normX) + Math.cos(scherkFrequency * normY) > 0) {
                  const [tx, ty] = applyTransform(x, y, params, canvas.width/2, canvas.height/2);
                  ctx.fillRect(tx, ty, 1, 1);
@@ -494,7 +519,7 @@ function drawTJunction(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
 }
 
 
-export function drawScaffold(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
+function drawScaffoldOriginal(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
   const canvas = ctx.canvas;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
@@ -508,68 +533,103 @@ export function drawScaffold(ctx: CanvasRenderingContext2D, params: ScaffoldPara
   ctx.lineWidth = 2; // Default line width
   
   switch (params.templateId) {
-    case 'aligned-fibers':
-      drawAlignedFibers(ctx, params);
-      break;
-    case 'wavy-channels':
-      drawWavyChannels(ctx, params);
-      break;
-    case 'radial-spokes':
-      drawRadialSpokes(ctx, params);
-      break;
-    case 'porous-network':
-      drawPorousNetwork(ctx, params);
-      break;
+    case 'aligned-fibers': drawAlignedFibers(ctx, params); break;
+    case 'wavy-channels': drawWavyChannels(ctx, params); break;
+    case 'radial-spokes': drawRadialSpokes(ctx, params); break;
+    case 'porous-network': drawPorousNetwork(ctx, params); break;
     case 'grid-gradient':
-        ctx.fillStyle = '#f3f4f6';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#1f2937';
-        // We draw circles of material and leave the rest empty
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#f3f4f6'; // Pores are empty space
+        ctx.fillStyle = '#f3f4f6';
         drawGridGradient(ctx, params);
         break;
-    case 'concentric-rings':
-        drawConcentricRings(ctx, params);
-        break;
-    case 'micropillar-array':
-        drawMicropillarArray(ctx, params);
-        break;
-    case 'crosshatch-grid':
-        drawCrosshatchGrid(ctx, params);
-        break;
+    case 'concentric-rings': drawConcentricRings(ctx, params); break;
+    case 'micropillar-array': drawMicropillarArray(ctx, params); break;
+    case 'crosshatch-grid': drawCrosshatchGrid(ctx, params); break;
     case 'tunnels':
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#f3f4f6';
         drawTunnels(ctx, params);
         break;
-    case 'lamellar':
-        drawLamellar(ctx, params);
-        break;
-    case 'dendritic':
-        drawDendritic(ctx, params);
-        break;
-    case 'honeycomb':
-        drawHoneycomb(ctx, params);
-        break;
-    case 'equiaxed':
-        drawEquiaxed(ctx, params);
-        break;
+    case 'lamellar': drawLamellar(ctx, params); break;
+    case 'dendritic': drawDendritic(ctx, params); break;
+    case 'honeycomb': drawHoneycomb(ctx, params); break;
+    case 'equiaxed': drawEquiaxed(ctx, params); break;
     case 'cellular':
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#f3f4f6';
         drawCellular(ctx, params);
         break;
-    case 'sinusoidal-fibers':
-        drawSinusoidalFibers(ctx, params);
-        break;
-    case 'vortex':
-        drawVortex(ctx, params);
-        break;
-    case 'maze':
-        drawMaze(ctx, params);
-        break;
-    case 'scherk-tower':
-        drawScherkTower(ctx, params);
-        break;
-    case 't-junction':
-        drawTJunction(ctx, params);
-        break;
+    case 'sinusoidal-fibers': drawSinusoidalFibers(ctx, params); break;
+    case 'vortex': drawVortex(ctx, params); break;
+    case 'maze': drawMaze(ctx, params); break;
+    case 'scherk-tower': drawScherkTower(ctx, params); break;
+    case 't-junction': drawTJunction(ctx, params); break;
   }
+}
+
+export function drawScaffold(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
+  const canvas = ctx.canvas;
+  
+  const offscreenCanvas = document.createElement('canvas');
+  offscreenCanvas.width = canvas.width;
+  offscreenCanvas.height = canvas.height;
+  const offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+  if (!offscreenCtx) return;
+
+  drawScaffoldOriginal(offscreenCtx, params);
+
+  const maskData = offscreenCtx.getImageData(0, 0, canvas.width, canvas.height);
+  const maskPixels = maskData.data;
+
+  const outputImageData = ctx.createImageData(canvas.width, canvas.height);
+  const outputPixels = outputImageData.data;
+
+  const { heightModulationType, heightModulationAmplitude, heightModulationFrequency, heightModulationGradientAngle } = params;
+  const angleRad = heightModulationGradientAngle * Math.PI / 180;
+  const gradVec = { x: Math.cos(angleRad), y: Math.sin(angleRad) };
+  
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+        const i = (y * canvas.width + x) * 4;
+        
+        if (maskPixels[i] > 200 && maskPixels[i+1] > 200 && maskPixels[i+2] > 200) {
+            outputPixels[i] = 0; outputPixels[i+1] = 0; outputPixels[i+2] = 0; outputPixels[i+3] = 255;
+            continue;
+        }
+
+        let baseHeight = 1.0;
+        let modulation = 0;
+        const normX = x / canvas.width;
+        const normY = y / canvas.height;
+
+        switch(heightModulationType) {
+            case 'gradient':
+                let dot = (normX - 0.5) * gradVec.x + (normY - 0.5) * gradVec.y;
+                modulation = (dot + 0.5);
+                break;
+            case 'perlin':
+                modulation = (perlin.noise(normX * heightModulationFrequency, normY * heightModulationFrequency) + 1) / 2;
+                break;
+            case 'wave':
+                modulation = (Math.sin(normX * heightModulationFrequency * Math.PI * 2) + 1) / 2;
+                break;
+            default:
+                modulation = 1.0;
+                break;
+        }
+
+        let finalHeight = baseHeight;
+        if (heightModulationType !== 'none') {
+             finalHeight = Math.max(0, Math.min(1, (1 - heightModulationAmplitude) + heightModulationAmplitude * modulation));
+        }
+        
+        const grayValue = Math.floor(finalHeight * 255);
+        outputPixels[i] = grayValue; outputPixels[i+1] = grayValue; outputPixels[i+2] = grayValue; outputPixels[i+3] = 255;
+    }
+  }
+
+  ctx.putImageData(outputImageData, 0, 0);
 }

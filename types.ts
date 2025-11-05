@@ -1,5 +1,6 @@
 export type TemplateId = 'aligned-fibers' | 'wavy-channels' | 'radial-spokes' | 'porous-network' | 'grid-gradient' | 'concentric-rings' | 'micropillar-array' | 'crosshatch-grid' | 'tunnels' | 'lamellar' | 'dendritic' | 'honeycomb' | 'equiaxed' | 'cellular' | 'sinusoidal-fibers' | 'vortex' | 'maze' | 'scherk-tower' | 't-junction';
 export type TransformId = 'none' | 'twist' | 'pinch' | 'ripple';
+export type HeightModulationType = 'none' | 'gradient' | 'perlin' | 'wave';
 
 export interface ScaffoldParams {
   id: string; // Unique ID for saved designs
@@ -41,6 +42,12 @@ export interface ScaffoldParams {
   // Diffeomorphic transform params
   transformStrength: number;
   
+  // Height Modulation
+  heightModulationType: HeightModulationType;
+  heightModulationAmplitude: number;
+  heightModulationFrequency: number;
+  heightModulationGradientAngle: number;
+
   // General scaffold params
   thickness: number; // in µm
   width: number; // in µm
