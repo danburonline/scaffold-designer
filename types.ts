@@ -1,4 +1,4 @@
-export type TemplateId = 'aligned-fibers' | 'wavy-channels' | 'radial-spokes' | 'porous-network' | 'grid-gradient' | 'concentric-rings' | 'micropillar-array' | 'crosshatch-grid' | 'tunnels' | 'lamellar' | 'dendritic' | 'honeycomb' | 'equiaxed' | 'cellular' | 'sinusoidal-fibers' | 'vortex' | 'maze' | 'scherk-tower' | 't-junction';
+export type TemplateId = 'serpentine-mesh' | 'aligned-fibers' | 'wavy-channels' | 'radial-spokes' | 'porous-network' | 'grid-gradient' | 'concentric-rings' | 'micropillar-array' | 'crosshatch-grid' | 'tunnels' | 'lamellar' | 'dendritic' | 'honeycomb' | 'equiaxed' | 'cellular' | 'sinusoidal-fibers' | 'vortex' | 'maze' | 'scherk-tower' | 't-junction';
 export type TransformId = 'none' | 'twist' | 'pinch' | 'ripple';
 export type HeightModulationType = 'none' | 'gradient' | 'perlin' | 'wave';
 
@@ -38,6 +38,10 @@ export interface ScaffoldParams {
   junctionSeparation: number; // For t-junction
   junctionHeight: number; // For t-junction
   tunnelWidth: number; // For t-junction
+  serpentinePathWidth: number;
+  serpentineArcRadius: number;
+  serpentineConnectorLength: number;
+  serpentineRowSpacing: number;
 
   // Diffeomorphic transform params
   transformStrength: number;

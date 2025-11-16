@@ -52,6 +52,13 @@ const TemplateIconBase: React.FC<{ children: React.ReactNode }> = ({ children })
     </svg>
 );
 
+export const SerpentineMeshIcon: React.FC = () => (
+    <TemplateIconBase>
+      <path d="M 1 8 L 3 8 A 3 3 0 0 1 9 8 L 11 8 A 3 3 0 0 0 17 8 L 19 8 A 3 3 0 0 1 25 8" strokeLinecap="round" />
+      <path d="M -3 16 L -1 16 A 3 3 0 0 1 5 16 L 7 16 A 3 3 0 0 0 13 16 L 15 16 A 3 3 0 0 1 21 16 L 23 16" strokeLinecap="round" />
+    </TemplateIconBase>
+);
+
 export const AlignedFibersIcon: React.FC = () => (
     <TemplateIconBase>
         <path d="M4 4V20" />

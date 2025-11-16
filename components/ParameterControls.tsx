@@ -38,6 +38,12 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
     };
 
     switch(params.templateId) {
+        case 'serpentine-mesh':
+            randomizeField('serpentinePathWidth', 5, 25);
+            randomizeField('serpentineArcRadius', 10, 50);
+            randomizeField('serpentineConnectorLength', 5, 50);
+            randomizeField('serpentineRowSpacing', 20, 60);
+            break;
         case 'aligned-fibers':
             randomizeField('fiberSpacing', 10, 80);
             break;
@@ -111,6 +117,13 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
 
   const templateControls = useMemo(() => {
     switch (params.templateId) {
+      case 'serpentine-mesh':
+        return <>
+            <Slider label="Path Width" value={params.serpentinePathWidth} min={2} max={50} step={1} unit="µm" onChange={handleParamChange('serpentinePathWidth')} help="Thickness of the serpentine paths."/>
+            <Slider label="Arc Radius" value={params.serpentineArcRadius} min={5} max={100} step={1} unit="µm" onChange={handleParamChange('serpentineArcRadius')} help="Radius of the half-circle sections."/>
+            <Slider label="Connector Length" value={params.serpentineConnectorLength} min={0} max={100} step={1} unit="µm" onChange={handleParamChange('serpentineConnectorLength')} help="Length of the straight sections connecting the arcs."/>
+            <Slider label="Row Spacing" value={params.serpentineRowSpacing} min={10} max={150} step={1} unit="µm" onChange={handleParamChange('serpentineRowSpacing')} help="Vertical distance between rows of waves."/>
+        </>;
       case 'aligned-fibers':
         return <Slider label="Fiber Spacing" value={params.fiberSpacing} min={5} max={100} step={1} unit="µm" onChange={handleParamChange('fiberSpacing')} help="Distance between parallel fibers."/>;
       case 'wavy-channels':

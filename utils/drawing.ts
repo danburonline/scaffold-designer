@@ -85,6 +85,84 @@ function applyTransform(x: number, y: number, params: ScaffoldParams, centerX: n
   }
 }
 
+function drawSerpentineMesh(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
+    const { width, serpentinePathWidth, serpentineArcRadius, serpentineConnectorLength, serpentineRowSpacing } = params;
+    const canvas = ctx.canvas;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    const R = serpentineArcRadius * (canvas.width / width);
+    const L = serpentineConnectorLength * (canvas.width / width);
+    const S = serpentineRowSpacing * (canvas.width / width);
+
+    if (R <= 0.1) return; // Avoid drawing if radius is zero
+
+    ctx.lineWidth = serpentinePathWidth * (canvas.width / width);
+    
+    const period = 2 * R + L + 2 * R + L;
+
+    const drawSegment = (p1: [number, number], p2: [number, number]) => {
+        const segments = 8;
+        for (let i = 1; i <= segments; i++) {
+            const t = i / segments;
+            const x = p1[0] * (1 - t) + p2[0] * t;
+            const y = p1[1] * (1 - t) + p2[1] * t;
+            const [tx, ty] = applyTransform(x, y, params, centerX, centerY);
+            ctx.lineTo(tx, ty);
+        }
+    };
+
+    const drawArc = (cx: number, cy: number, r: number, startAngle: number, endAngle: number) => {
+        const segments = 12;
+        const angleStep = (endAngle - startAngle) / segments;
+        for (let i = 1; i <= segments; i++) {
+            const angle = startAngle + i * angleStep;
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+            const [tx, ty] = applyTransform(x, y, params, centerX, centerY);
+            ctx.lineTo(tx, ty);
+        }
+    };
+
+    for (let j = -3; j * S < canvas.height + 3 * S; j++) {
+        const y = j * S;
+        const xOffset = (j % 2 !== 0) ? period / 2 : 0;
+        
+        ctx.beginPath();
+        
+        let currentX = -period + xOffset;
+        while(currentX > 0) currentX -= period;
+
+        const [startX, startY] = applyTransform(currentX, y, params, centerX, centerY);
+        ctx.moveTo(startX, startY);
+
+        while (currentX < canvas.width + period) {
+            let nextX: number;
+
+            // First connector
+            nextX = currentX + L;
+            drawSegment([currentX, y], [nextX, y]);
+            currentX = nextX;
+
+            // Downward arc (top half-circle)
+            drawArc(currentX + R, y, R, Math.PI, 2 * Math.PI);
+            currentX += 2 * R;
+
+            // Second connector
+            nextX = currentX + L;
+            drawSegment([currentX, y], [nextX, y]);
+            currentX = nextX;
+            
+            // Upward arc (bottom half-circle)
+            // FIX: Removed extra argument from drawArc call. The function expects 5 arguments but was called with 6.
+            drawArc(currentX + R, y, R, Math.PI, 0);
+            currentX += 2 * R;
+        }
+        ctx.stroke();
+    }
+}
+
+
 // Drawing functions for each template
 function drawAlignedFibers(ctx: CanvasRenderingContext2D, params: ScaffoldParams) {
     const { width, height, fiberSpacing } = params;
@@ -531,8 +609,10 @@ function drawScaffoldOriginal(ctx: CanvasRenderingContext2D, params: ScaffoldPar
   ctx.fillStyle = '#1f2937'; // gray-800
   ctx.strokeStyle = '#1f2937'; // gray-800
   ctx.lineWidth = 2; // Default line width
+  ctx.lineCap = 'round';
   
   switch (params.templateId) {
+    case 'serpentine-mesh': drawSerpentineMesh(ctx, params); break;
     case 'aligned-fibers': drawAlignedFibers(ctx, params); break;
     case 'wavy-channels': drawWavyChannels(ctx, params); break;
     case 'radial-spokes': drawRadialSpokes(ctx, params); break;

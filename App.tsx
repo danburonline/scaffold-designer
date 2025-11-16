@@ -12,9 +12,9 @@ import { DEFAULT_PARAMS } from './constants';
 
 const App: React.FC = () => {
   const [params, setParams] = useState<ScaffoldParams>({
-    ...DEFAULT_PARAMS['aligned-fibers'],
+    ...DEFAULT_PARAMS['serpentine-mesh'],
     id: crypto.randomUUID(),
-    name: 'New Fiber Design'
+    name: 'New Serpentine Design'
   });
   const [savedDesigns, setSavedDesigns] = useState<ScaffoldParams[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);

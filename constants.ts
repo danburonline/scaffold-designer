@@ -3,6 +3,7 @@ import { Template, ScaffoldParams, TemplateId, TransformId, HeightModulationType
 
 export const TEMPLATES: Template[] = [
   // Prioritized templates based on user feedback
+  { id: 'serpentine-mesh', name: 'Serpentine Mesh', description: 'Interconnected wavy lines forming a maze-like structure.' },
   { id: 'dendritic', name: 'Dendritic', description: 'Anisotropic: Tree-like branching structures for hierarchical guidance.' },
   { id: 'maze', name: 'Maze', description: 'Anisotropic: A labyrinth for complex neurite pathfinding studies.'},
   { id: 'aligned-fibers', name: 'Aligned Fibers', description: 'Anisotropic: Parallel channels mimicking nerve bundles.' },
@@ -67,9 +68,21 @@ const BASE_PARAMS = {
   junctionSeparation: 200,
   junctionHeight: 200,
   tunnelWidth: 25,
+  serpentinePathWidth: 15,
+  serpentineArcRadius: 20,
+  serpentineConnectorLength: 20,
+  serpentineRowSpacing: 35,
 };
 
 export const DEFAULT_PARAMS: Record<TemplateId, Omit<ScaffoldParams, 'id' | 'name'>> = {
+  'serpentine-mesh': {
+    ...BASE_PARAMS,
+    templateId: 'serpentine-mesh',
+    serpentinePathWidth: 12,
+    serpentineArcRadius: 25,
+    serpentineConnectorLength: 15,
+    serpentineRowSpacing: 40,
+  },
   'aligned-fibers': {
     ...BASE_PARAMS,
     templateId: 'aligned-fibers',

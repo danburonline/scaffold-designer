@@ -1,7 +1,7 @@
 import React from 'react';
 import { TemplateId } from '../types';
 import { TEMPLATES } from '../constants';
-import { AlignedFibersIcon, GridGradientIcon, PorousNetworkIcon, RadialSpokesIcon, WavyChannelsIcon, ConcentricRingsIcon, MicropillarArrayIcon, CrosshatchGridIcon, TunnelsIcon, LamellarIcon, DendriticIcon, HoneycombIcon, EquiaxedIcon, CellularIcon, SinusoidalFibersIcon, VortexIcon, MazeIcon, ScherkTowerIcon, TJunctionIcon } from './icons';
+import { SerpentineMeshIcon, AlignedFibersIcon, GridGradientIcon, PorousNetworkIcon, RadialSpokesIcon, WavyChannelsIcon, ConcentricRingsIcon, MicropillarArrayIcon, CrosshatchGridIcon, TunnelsIcon, LamellarIcon, DendriticIcon, HoneycombIcon, EquiaxedIcon, CellularIcon, SinusoidalFibersIcon, VortexIcon, MazeIcon, ScherkTowerIcon, TJunctionIcon } from './icons';
 
 interface TemplateSelectorProps {
   onSelect: (templateId: TemplateId) => void;
@@ -9,6 +9,7 @@ interface TemplateSelectorProps {
 }
 
 const ICONS: Record<TemplateId, React.FC> = {
+    'serpentine-mesh': SerpentineMeshIcon,
     'aligned-fibers': AlignedFibersIcon,
     'lamellar': LamellarIcon,
     'sinusoidal-fibers': SinusoidalFibersIcon,
