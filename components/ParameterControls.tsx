@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { ScaffoldParams, TransformId, TemplateId, HeightModulationType } from '../types';
 import { DEFAULT_PARAMS } from '../constants';
@@ -27,6 +28,13 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
   
   const handleSelectChange = (field: keyof ScaffoldParams) => (e: React.ChangeEvent<HTMLSelectElement>) => {
     setParams(p => ({ ...p, [field]: e.target.value as any }));
+  };
+
+  const updateMaterialCount = (delta: number) => {
+      setParams(p => ({
+          ...p,
+          materialCount: Math.max(1, Math.min(6, (p.materialCount || 1) + delta))
+      }));
   };
 
   const handleRandomize = () => {
@@ -222,6 +230,35 @@ export const ParameterControls: React.FC<ParameterControlsProps> = ({ params, se
              onChange={(e) => setParams(p => ({...p, name: e.target.value}))}
              className="w-full bg-gray-700 text-white p-2 rounded-md mb-4"
            />
+      </div>
+
+      <div className="space-y-3 p-3 bg-gray-900/50 rounded-md">
+           <h3 className="font-semibold border-b border-gray-600 pb-2 mb-2 flex justify-between items-center">
+               <span>Composition</span>
+               <span className="text-xs font-normal text-gray-400">Multi-material</span>
+           </h3>
+           <div className="flex items-center justify-between">
+               <label className="text-sm font-medium text-gray-300">Materials / Layers</label>
+               <div className="flex items-center space-x-3 bg-gray-700 rounded-md p-1">
+                   <button 
+                       onClick={() => updateMaterialCount(-1)} 
+                       className="w-8 h-8 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded text-white font-bold disabled:opacity-50"
+                       disabled={(params.materialCount || 1) <= 1}
+                   >
+                       -
+                   </button>
+                   <span className="font-mono text-lg w-4 text-center">{params.materialCount || 1}</span>
+                   <button 
+                       onClick={() => updateMaterialCount(1)} 
+                       className="w-8 h-8 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded text-white font-bold"
+                   >
+                       +
+                   </button>
+               </div>
+           </div>
+           <p className="text-xs text-gray-400 mt-2">
+               Increase to intertwine multiple materials. Shapes are distributed across materials (e.g., alternating branches, fibers).
+           </p>
       </div>
 
       <div className="space-y-3 p-3 bg-gray-900/50 rounded-md">

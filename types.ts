@@ -1,3 +1,4 @@
+
 export type TemplateId = 'serpentine-mesh' | 'aligned-fibers' | 'wavy-channels' | 'radial-spokes' | 'porous-network' | 'grid-gradient' | 'concentric-rings' | 'micropillar-array' | 'crosshatch-grid' | 'tunnels' | 'lamellar' | 'dendritic' | 'honeycomb' | 'equiaxed' | 'cellular' | 'sinusoidal-fibers' | 'vortex' | 'maze' | 'scherk-tower' | 't-junction';
 export type TransformId = 'none' | 'twist' | 'pinch' | 'ripple';
 export type HeightModulationType = 'none' | 'gradient' | 'perlin' | 'wave';
@@ -56,6 +57,9 @@ export interface ScaffoldParams {
   thickness: number; // in µm
   width: number; // in µm
   height: number; // in µm
+  
+  // Multi-material params
+  materialCount: number;
 }
 
 export interface Template {

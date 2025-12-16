@@ -1,3 +1,4 @@
+
 // FIX: Import `TransformId` to fix 'Cannot find name' error.
 import { Template, ScaffoldParams, TemplateId, TransformId, HeightModulationType } from './types';
 
@@ -33,6 +34,7 @@ const BASE_PARAMS = {
   thickness: 100,
   width: 500,
   height: 500,
+  materialCount: 1,
   // Height Modulation Defaults
   heightModulationType: 'none' as HeightModulationType,
   heightModulationAmplitude: 0.5,

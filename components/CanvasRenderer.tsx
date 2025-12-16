@@ -1,5 +1,4 @@
 
-
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { ScaffoldParams } from '../types';
 import { drawScaffold } from '../utils/drawing';
@@ -24,7 +23,8 @@ export const CanvasRenderer = forwardRef<HTMLCanvasElement, CanvasRendererProps>
     canvas.width = 512;
     canvas.height = 512;
 
-    drawScaffold(ctx, params);
+    // Render in preview mode (showing all materials with colors)
+    drawScaffold(ctx, params, { preview: true });
 
   }, [params, canvasRef]);
 

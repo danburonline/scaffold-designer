@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Header } from './components/Header';
 import { TemplateSelector } from './components/TemplateSelector';
@@ -9,6 +10,7 @@ import { JsonEditor } from './components/JsonEditor';
 import { exportToPNG, exportToSTL } from './utils/export';
 import { ScaffoldParams, TemplateId } from './types';
 import { DEFAULT_PARAMS } from './constants';
+import { drawScaffold } from './utils/drawing';
 
 const App: React.FC = () => {
   const [params, setParams] = useState<ScaffoldParams>({
@@ -67,26 +69,49 @@ const App: React.FC = () => {
   }, []);
 
   const handleExportPNG = useCallback(() => {
-    if (canvasRef.current) {
-      exportToPNG(canvasRef.current, `${params.name}.png`);
+    // We generate PNGs using a hidden canvas to ensure we export the grayscale masks, not the colored preview.
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = 512;
+    exportCanvas.height = 512;
+    const ctx = exportCanvas.getContext('2d');
+    
+    if (ctx) {
+        const count = params.materialCount || 1;
+        for (let i = 0; i < count; i++) {
+            drawScaffold(ctx, params, { materialIndex: i, preview: false });
+            // Add a small delay for sequential downloads if needed, though browsers might handle it.
+            // Suffix filename with material index if > 1
+            const filename = count > 1 ? `${params.name}_mat${i+1}.png` : `${params.name}.png`;
+            exportToPNG(exportCanvas, filename);
+        }
     }
-  }, [params.name]);
+  }, [params]);
 
   const handleExportSTL = useCallback(() => {
-    if (canvasRef.current) {
-      setIsGenerating(true);
-      // Use setTimeout to allow the UI to update to the loading state
-      setTimeout(() => {
-        try {
-          exportToSTL(canvasRef.current, params, `${params.name}.stl`);
-        } catch (error) {
-          console.error("STL Generation failed:", error);
-          alert("Failed to generate STL file. The design may be too complex.");
-        } finally {
-          setIsGenerating(false);
+    setIsGenerating(true);
+    // Use setTimeout to allow the UI to update to the loading state
+    setTimeout(() => {
+      try {
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = 512;
+        exportCanvas.height = 512;
+        const ctx = exportCanvas.getContext('2d', { willReadFrequently: true });
+        
+        if (ctx) {
+            const count = params.materialCount || 1;
+            for (let i = 0; i < count; i++) {
+                drawScaffold(ctx, params, { materialIndex: i, preview: false });
+                const filename = count > 1 ? `${params.name}_mat${i+1}.stl` : `${params.name}.stl`;
+                exportToSTL(exportCanvas, params, filename);
+            }
         }
-      }, 50);
-    }
+      } catch (error) {
+        console.error("STL Generation failed:", error);
+        alert("Failed to generate STL file. The design may be too complex.");
+      } finally {
+        setIsGenerating(false);
+      }
+    }, 50);
   }, [params]);
 
   return (
